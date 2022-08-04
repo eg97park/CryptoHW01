@@ -1,10 +1,16 @@
 #include <stdio.h> 
 #include <openssl/bn.h>
+#define NBITS 256
+
+void printBN(const char* msg, BIGNUM* a){
+    char* number_str = BN_bn2dec(a);
+    printf("%s %s\n", msg, number_str);
+    OPENSSL_free(number_str);
+}
 
 BIGNUM *XEuclid(BIGNUM *x, BIGNUM *y, const BIGNUM *a, const BIGNUM *b)
 {
-... ...
-... ...
+        return BN_new();
 }
 
 int main (int argc, char *argv[])
