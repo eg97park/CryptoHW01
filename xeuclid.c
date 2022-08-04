@@ -1,6 +1,5 @@
 #include <stdio.h> 
 #include <openssl/bn.h>
-#define NBITS 256
 
 void printBN(const char* msg, BIGNUM* a){
     char* number_str = BN_bn2dec(a);
@@ -10,7 +9,42 @@ void printBN(const char* msg, BIGNUM* a){
 
 BIGNUM *XEuclid(BIGNUM *x, BIGNUM *y, const BIGNUM *a, const BIGNUM *b)
 {
-        return BN_new();
+        BIGNUM *gcd = BN_new();
+
+        BIGNUM *a_ = BN_dup(a);
+        BIGNUM *b_ = BN_dup(b);
+
+        BIGNUM *p1 = BN_new();  BN_dec2bn(&p1, "1");
+        BIGNUM *p2 = BN_new();  BN_dec2bn(&p2, "0");
+        BIGNUM *q1 = BN_new();  BN_dec2bn(&q1, "0");
+        BIGNUM *q2 = BN_new();  BN_dec2bn(&q2, "1");
+
+        BIGNUM *rem = BN_new();
+        BIGNUM *dv = BN_new();
+        BN_CTX *ctx = BN_CTX_new();
+
+        BIGNUM *mul_dv_p2 = BN_new();
+        BIGNUM *mul_dv_q2 = BN_new();
+
+        while (BN_is_zero(b_) != 1){
+                BN_div(dv, rem, a_, b_, ctx);
+                BN_copy(a_, b_);
+                BN_copy(b_, rem);
+
+                BN_mul(mul_dv_p2, dv, p2, ctx);
+                BN_sub(x, p1, mul_dv_p2);
+                BN_copy(p1, p2);
+                BN_copy(p2, x);
+
+                BN_mul(mul_dv_q2, dv, q2, ctx);
+                BN_sub(y, q1, mul_dv_q2);
+                BN_copy(q1, q2);
+                BN_copy(q2, y);
+        }
+        BN_copy(x, p1);
+        BN_copy(y, q1);
+        BN_copy(gcd, a_);
+        return gcd;
 }
 
 int main (int argc, char *argv[])
