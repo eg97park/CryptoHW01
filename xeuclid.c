@@ -14,10 +14,10 @@ BIGNUM *XEuclid(BIGNUM *x, BIGNUM *y, const BIGNUM *a, const BIGNUM *b)
         BIGNUM *a_ = BN_dup(a);
         BIGNUM *b_ = BN_dup(b);
 
-        BIGNUM *p1 = BN_new();  BN_dec2bn(&p1, "1");
-        BIGNUM *p2 = BN_new();  BN_dec2bn(&p2, "0");
-        BIGNUM *q1 = BN_new();  BN_dec2bn(&q1, "0");
-        BIGNUM *q2 = BN_new();  BN_dec2bn(&q2, "1");
+        BIGNUM *x_0 = BN_new();  BN_dec2bn(&x_0, "1");
+        BIGNUM *x_1 = BN_new();  BN_dec2bn(&x_1, "0");
+        BIGNUM *y_0 = BN_new();  BN_dec2bn(&y_0, "0");
+        BIGNUM *y_1 = BN_new();  BN_dec2bn(&y_1, "1");
 
         BIGNUM *rem = BN_new();
         BIGNUM *dv = BN_new();
@@ -31,18 +31,18 @@ BIGNUM *XEuclid(BIGNUM *x, BIGNUM *y, const BIGNUM *a, const BIGNUM *b)
                 BN_copy(a_, b_);
                 BN_copy(b_, rem);
 
-                BN_mul(mul_dv_p2, dv, p2, ctx);
-                BN_sub(x, p1, mul_dv_p2);
-                BN_copy(p1, p2);
-                BN_copy(p2, x);
+                BN_mul(mul_dv_p2, dv, x_1, ctx);
+                BN_sub(x, x_0, mul_dv_p2);
+                BN_copy(x_0, x_1);
+                BN_copy(x_1, x);
 
-                BN_mul(mul_dv_q2, dv, q2, ctx);
-                BN_sub(y, q1, mul_dv_q2);
-                BN_copy(q1, q2);
-                BN_copy(q2, y);
+                BN_mul(mul_dv_q2, dv, y_1, ctx);
+                BN_sub(y, y_0, mul_dv_q2);
+                BN_copy(y_0, y_1);
+                BN_copy(y_1, y);
         }
-        BN_copy(x, p1);
-        BN_copy(y, q1);
+        BN_copy(x, x_0);
+        BN_copy(y, y_0);
         BN_copy(gcd, a_);
         return gcd;
 }
