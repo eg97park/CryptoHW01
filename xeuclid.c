@@ -21,30 +21,33 @@ BIGNUM *XEuclid(BIGNUM *x, BIGNUM *y, const BIGNUM *a, const BIGNUM *b)
         BIGNUM *x_1 = BN_new();  BN_dec2bn(&x_1, "0");
         BIGNUM *y_1 = BN_new();  BN_dec2bn(&y_1, "1");
 
-        BIGNUM *rem = BN_new();
-        BIGNUM *dv = BN_new();
+        BIGNUM *r = BN_new();
+        BIGNUM *q = BN_new();
 
-        // buf for mul, div.
+        // buf for mul, div operation.
         BN_CTX *ctx = BN_CTX_new();
 
         // tmp for mul.
-        BIGNUM *mul_dv_p2 = BN_new();
-        BIGNUM *mul_dv_q2 = BN_new();
+        BIGNUM *tmp = BN_new();
 
+        // x -> x_2, y -> y_2, k = 1
         while (!BN_is_zero(b_cur)){
-                // a_cur = b_cur * dv + rem
-                BN_div(dv, rem, a_cur, b_cur, ctx);
-
-                // x = x_0 - (dv * x_1)
-                BN_mul(mul_dv_p2, dv, x_1, ctx);
-                BN_sub(x, x_0, mul_dv_p2);
-
-                // y = y_0 - (dv * y_1)
-                BN_mul(mul_dv_q2, dv, y_1, ctx);
-                BN_sub(y, y_0, mul_dv_q2);
-
+                //      a_0 = b_0 * q_0 + r_0
+                //   ┌  a_1(=b_0) = b_1(=r_0) * q_1 + r_1
+                //   └> a_2(=b_1=r_0) = b_2(=r_1) * q_2 + r_2
+                BN_div(q, r, a_cur, b_cur, ctx);
                 BN_copy(a_cur, b_cur);
-                BN_copy(b_cur, rem);
+                BN_copy(b_cur, r);
+
+                // x_0 - x_1 * q_2 = x_2
+                BN_mul(tmp, x_1, q, ctx);
+                BN_sub(x, x_0, tmp);
+
+                // y_0 - y_1 * q_2 = y_2
+                BN_mul(tmp, y_1, q, ctx);
+                BN_sub(y, y_0, tmp);
+
+                // k += 1
                 BN_copy(x_0, x_1);
                 BN_copy(x_1, x);
                 BN_copy(y_0, y_1);
@@ -52,7 +55,18 @@ BIGNUM *XEuclid(BIGNUM *x, BIGNUM *y, const BIGNUM *a, const BIGNUM *b)
         }
         BN_copy(x, x_0);
         BN_copy(y, y_0);
-        return BN_dup(a_cur);
+
+        // make new object to return.
+        BIGNUM *gcd = BN_dup(a_cur);
+
+        // free everything!
+        if(a_cur != NULL && b_cur != NULL)      BN_free(a_cur); BN_free(b_cur);
+        if(x_0 != NULL && y_0 != NULL)          BN_free(x_0);   BN_free(y_0);
+        if(x_1 != NULL && y_1 != NULL)          BN_free(x_1);   BN_free(y_1);
+        if(r != NULL && q != NULL)              BN_free(r);     BN_free(q);
+        if(tmp != NULL && ctx != NULL)          BN_free(tmp);   BN_CTX_free(ctx);
+
+        return gcd;
 }
 
 int main (int argc, char *argv[])
